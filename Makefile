@@ -12,6 +12,11 @@ client.o: client.c
 serveur: serveur.o
 client: client.o
 
+src/scanner/ip_scan/ip_scan.o: src/scanner/ip_scan/ip_scan.c src/scanner/ip_scan/ip_scan.h src/scanner/ip_scan/ping.h
+src/scanner/ip_scan/ip_scan: src/scanner/ip_scan/ip_scan.o src/scanner/ip_scan/ping.o
+
+src/scanner/ip_scan/ping.o: src/scanner/ip_scan/ping.c src/scanner/ip_scan/ping.h
+
 
 clean: 
 	rm -f *.o ${ALL_EXECUTABLES}
