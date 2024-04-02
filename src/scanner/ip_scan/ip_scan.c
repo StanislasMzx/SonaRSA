@@ -1,22 +1,42 @@
 #include "ip_scan.h"
 #include "ping.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <arpa/inet.h>
 
-int main(void)
+void ping_sweep(in_addr_t ip_addrs[], int len)
 {
-    // ask user for an IP address
-    char ip[16];
-    printf("Enter an IP address: ");
-    scanf("%s", ip);
-    // call the ping function
-    if (ping(ip) == 0)
+    pid_t child_pids[len];
+
+    for (int i = 0; i < len; i++)
     {
-        printf("Host is reachable\n");
+        pid_t pid = fork();
+
+        if (pid == -1)
+        {
+            perror("fork");
+            return;
+        }
+        else if (pid == 0)
+        {
+            // Child process
+            if (ping(ip_addrs[i]) == 0)
+            {
+                printf("Host %s is reachable\n", inet_ntoa(*(struct in_addr *)&ip_addrs[i]));
+            }
+            exit(0);
+        }
+        else
+        {
+            // Parent process
+            child_pids[i] = pid;
+        }
     }
-    else
+
+    for (int i = 0; i < len; i++)
     {
-        printf("Host is unreachable\n");
+        waitpid(child_pids[i], NULL, 0);
     }
-    /* code */
-    return 0;
 }

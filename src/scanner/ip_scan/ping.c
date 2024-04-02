@@ -11,25 +11,18 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <errno.h>
+#include "../../../libs/log/log.h"
 
 #define PACKET_SIZE 64
 #define TIMEOUT_SEC 1
 #define TIMEOUT_USEC 0
 
-int ping(char *target_host)
+int ping(in_addr_t target_addr)
 {
-    struct hostent *host_info;
-    struct sockaddr_in dest_addr, bind_addr;
-
-    // Get host entry
-    if ((host_info = gethostbyname(target_host)) == NULL)
-    {
-        herror("gethostbyname");
-        return 1;
-    }
+    struct sockaddr_in dest_addr;
 
     // Fill in destination address
-    memcpy(&dest_addr.sin_addr, host_info->h_addr_list[0], host_info->h_length);
+    dest_addr.sin_addr.s_addr = target_addr;
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = 0;
 
@@ -38,17 +31,6 @@ int ping(char *target_host)
     if (sock == -1)
     {
         perror("socket");
-        return 1;
-    }
-
-    // Bind the socket to the target IP address
-    bind_addr.sin_family = AF_INET;
-    bind_addr.sin_addr.s_addr = dest_addr.sin_addr.s_addr;
-    bind_addr.sin_port = 0;
-    if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) == -1)
-    {
-        perror("bind");
-        close(sock);
         return 1;
     }
 
@@ -69,7 +51,7 @@ int ping(char *target_host)
     // Send packet
     if (sendto(sock, packet, PACKET_SIZE, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) == -1)
     {
-        perror("sendto");
+        log_error("sendto: %s", strerror(errno));
         close(sock);
         return 1;
     }
@@ -85,14 +67,34 @@ int ping(char *target_host)
 
     if (recvfrom(sock, recv_packet, PACKET_SIZE, 0, (struct sockaddr *)&recv_addr, &recv_addr_len) == -1)
     {
-        // printf("Host %s is unreachable\n", target_host);
+        log_error("recvfrom: %s", strerror(errno));
         close(sock);
         return 1;
     }
+    else
+    {
+        struct icmp *recv_icmp_hdr = (struct icmp *)(recv_packet + sizeof(struct ip));
 
-    printf("Host %s is reachable\n", target_host);
+        if (recv_icmp_hdr->icmp_type == ICMP_ECHOREPLY)
+        {
+            // Check if the ICMP ID matches the expected ID
+            if (recv_icmp_hdr->icmp_id != getpid())
+            {
+                log_warn("Received ICMP packet with unexpected ID: %d (expected: %d)", recv_icmp_hdr->icmp_id, getpid());
+                close(sock);
+                return 1;
+            }
+            else
+            {
+                log_info("Host %s is reachable", inet_ntoa(recv_addr.sin_addr));
+                close(sock);
+                return 0;
+            }
+        }
+    }
+
     close(sock);
-    return 0;
+    return 1;
 }
 
 unsigned short calculate_checksum(unsigned short *buf, int len)
