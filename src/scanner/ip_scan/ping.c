@@ -19,7 +19,7 @@
 int ping(char *target_host)
 {
     struct hostent *host_info;
-    struct sockaddr_in dest_addr;
+    struct sockaddr_in dest_addr, bind_addr;
 
     // Get host entry
     if ((host_info = gethostbyname(target_host)) == NULL)
@@ -38,6 +38,17 @@ int ping(char *target_host)
     if (sock == -1)
     {
         perror("socket");
+        return 1;
+    }
+
+    // Bind the socket to the target IP address
+    bind_addr.sin_family = AF_INET;
+    bind_addr.sin_addr.s_addr = dest_addr.sin_addr.s_addr;
+    bind_addr.sin_port = 0;
+    if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) == -1)
+    {
+        perror("bind");
+        close(sock);
         return 1;
     }
 
@@ -74,10 +85,12 @@ int ping(char *target_host)
 
     if (recvfrom(sock, recv_packet, PACKET_SIZE, 0, (struct sockaddr *)&recv_addr, &recv_addr_len) == -1)
     {
+        // printf("Host %s is unreachable\n", target_host);
         close(sock);
         return 1;
     }
 
+    printf("Host %s is reachable\n", target_host);
     close(sock);
     return 0;
 }
