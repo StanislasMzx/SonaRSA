@@ -100,9 +100,3 @@ void ping_sweep_subnet(void)
     }
     freeifaddrs(ifap);
 }
-
-int main(void)
-{
-    ping_sweep_subnet();
-    return 0;
-}

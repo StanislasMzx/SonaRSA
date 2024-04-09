@@ -67,7 +67,7 @@ int ping(in_addr_t target_addr)
 
     if (recvfrom(sock, recv_packet, PACKET_SIZE, 0, (struct sockaddr *)&recv_addr, &recv_addr_len) == -1)
     {
-        log_error("recvfrom: %s", strerror(errno));
+        // log_error("recvfrom: %s", strerror(errno));
         close(sock);
         return 1;
     }
@@ -80,7 +80,7 @@ int ping(in_addr_t target_addr)
             // Check if the ICMP ID matches the expected ID
             if (recv_icmp_hdr->icmp_id != getpid())
             {
-                log_warn("Received ICMP packet with unexpected ID: %d (expected: %d)", recv_icmp_hdr->icmp_id, getpid());
+                // log_warn("Received ICMP packet with unexpected ID: %d (expected: %d)", recv_icmp_hdr->icmp_id, getpid());
                 close(sock);
                 return 1;
             }
