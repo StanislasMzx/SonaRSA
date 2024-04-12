@@ -2,7 +2,7 @@ CC=clang
 CFLAGS=-Wall -Wextra -pedantic -fdiagnostics-color=always -O0 -g3 -fsanitize=address # -Wno-error-implicit-function-declaration
 LDFLAGS+=-fsanitize=address
 
-ALL_EXECUTABLES=
+ALL_EXECUTABLES=src/agent/agent src/manager/client
 
 all: $(ALL_EXECUTABLES)
 

@@ -75,7 +75,7 @@ int ping(in_addr_t target_addr)
     {
         struct icmp *recv_icmp_hdr = (struct icmp *)(recv_packet + sizeof(struct ip));
 
-        if (recv_icmp_hdr->icmp_type == ICMP_ECHOREPLY)
+        if (recv_icmp_hdr->icmp_type == ICMP_ECHOREPLY || recv_icmp_hdr->icmp_type == ICMP_ECHO)
         {
             // Check if the ICMP ID matches the expected ID
             if (recv_icmp_hdr->icmp_id != getpid())
