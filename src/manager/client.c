@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#define BUFFER_SIZE 2000000
 
 void sendMessage(int sockfd, const char *message) {
     // Envoi du message au serveur
@@ -14,6 +15,16 @@ void sendMessage(int sockfd, const char *message) {
         perror("Erreur lors de l'envoi du message au serveur");
         exit(EXIT_FAILURE);
     }
+}
+
+void receiveMessage(int sockfd, char *buffer, int size) {
+    // Réception de la réponse du serveur
+    if (recv(sockfd, buffer, size, 0) < 0) {
+        perror("Erreur lors de la réception de la réponse du serveur");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("\x1b[34m\x1b[1m[RECEIVED]\x1b[44m\x1b[0m\n%s\n", buffer);
 }
 
 
@@ -53,7 +64,9 @@ int main(int argc, char *argv[]) {
     printf("  - \e[1mscan\e[m: Scan your network\n");
     printf("\t options :\n");
     printf("\t\t - \e[1m-a\e[m : auto scan\n");
-    printf("\t\t - \e[1m-p ip1 ip2 ... ipn\e[m : scan a list of address\n");
+    printf("\t\t - \e[1m-l ip1 ip2 ... ipn\e[m : scan a list of address\n");
+    printf("\t\t - \e[1m-p ip start_port end_port\e[m : scan a range of ports for an ip\n");
+    printf("\t\t - \e[1m-p ip port\e[m : check if a port is open for an ip\n");
     printf("  - \e[1mexit\e[m: Exit the program\n\n");
 
     
@@ -61,6 +74,10 @@ int main(int argc, char *argv[]) {
 
     while(RUNNING){
         char message[1024];
+        char buffer[BUFFER_SIZE];
+        memset(buffer, 0, sizeof(buffer));
+
+
         printf("> enter your command: ");
         fgets(message, sizeof(message), stdin);
 
@@ -68,7 +85,7 @@ int main(int argc, char *argv[]) {
         size_t len = strlen(message);
         if (len > 0 && message[len - 1] == '\n') {
             message[len - 1] = '\0';
-            printf("Message envoyé : %s\n", message);
+            printf("\x1b[34m\x1b[1m[SEND]\x1b[44m\x1b[0m\n> %s\n", message);
         }
 
         if (strcmp(message, "exit") == 0)
@@ -78,10 +95,11 @@ int main(int argc, char *argv[]) {
         } else {
             // Envoyer le message au serveur
             sendMessage(sockfd, message);
+            receiveMessage(sockfd, buffer, sizeof(buffer));
+            buffer[0] = '\0';
         }
-        
-        // Envoyer le message au serveur
-    }
+
+        }
 
    
 
