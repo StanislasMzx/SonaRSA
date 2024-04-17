@@ -94,14 +94,14 @@ int main(void)
                 ping_sweep_subnet();
                 fflush(stdout);
                 read(out_pipe[0], resultBuffer, sizeof(resultBuffer));
-                dup2(saved_stdout, STDOUT_FILENO);   
+                dup2(saved_stdout, STDOUT_FILENO);
                 close(out_pipe[0]);
                 resultBuffer[strlen(resultBuffer)] = '\0'; // Add null terminator
-                printf("%s", resultBuffer); 
+                printf("%s", resultBuffer);
                 send(dialogSocket, resultBuffer, strlen(resultBuffer), 0);
             }
 
-            if (strncmp(buffer, "scan -l", 7) == 0)
+            else if (strncmp(buffer, "scan -l", 7) == 0)
             {
                 // Store IP addresses in a table
                 char *token = strtok(buffer + 7, " ");
@@ -125,49 +125,49 @@ int main(void)
 
                 fflush(stdout);
                 read(out_pipe[0], resultBuffer, sizeof(resultBuffer));
-                dup2(saved_stdout, STDOUT_FILENO);   
+                dup2(saved_stdout, STDOUT_FILENO);
                 close(out_pipe[0]);
                 resultBuffer[strlen(resultBuffer)] = '\0'; // Add null terminator
-                printf("%s", resultBuffer); 
+                printf("%s", resultBuffer);
                 send(dialogSocket, resultBuffer, strlen(resultBuffer), 0);
             }
 
-            if (strncmp(buffer, "scan -p",7) == 0)
+            else if (strncmp(buffer, "scan -p", 7) == 0)
             {
                 char *token = strtok(buffer + 8, " ");
                 char *host = token;
-                struct sockaddr_in sa;
-                int result = inet_pton(AF_INET, host, &(sa.sin_addr));
-                if (result == 0) {
-                    printf("Invalid IP address: %s\n", host);
-                    send(dialogSocket, "Invalid IP address\n", strlen("Invalid IP address\n"), 0);
-                    continue; // Skip to the next iteration of the loop
-                }
+
                 token = strtok(NULL, " ");
                 int startPort = atoi(token);
                 token = strtok(NULL, " ");
-                int endPort = (token != NULL) ? atoi(token) : startPort +1;
+                int endPort = (token != NULL) ? atoi(token) : startPort + 1;
 
                 dup2(out_pipe[1], STDOUT_FILENO);
                 close(out_pipe[1]);
                 port_scan(host, startPort, endPort);
+                printf("Scan completed\n");
                 fflush(stdout);
                 read(out_pipe[0], resultBuffer, sizeof(resultBuffer));
-                dup2(saved_stdout, STDOUT_FILENO);   
+                dup2(saved_stdout, STDOUT_FILENO);
                 close(out_pipe[0]);
                 resultBuffer[strlen(resultBuffer)] = '\0'; // Add null terminator
-                printf("%s", resultBuffer); 
+                printf("%s", resultBuffer);
                 send(dialogSocket, resultBuffer, strlen(resultBuffer), 0);
-                
             }
 
-            if (strcmp(buffer, "exit") == 0)
+            else if (strcmp(buffer, "exit") == 0)
             {
                 printf("\x1b[33m\x1b[1m[LOG]\x1b[43m\x1b[0m Exit\n");
                 char message[BUFFER_SIZE] = "exit\n\0";
                 send(dialogSocket, message, strlen(message), 0);
                 close(dialogSocket);
                 RUNNING = 0;
+            }
+
+            else
+            {
+                printf("Invalid command\n");
+                send(dialogSocket, "Invalid command\n", strlen("Invalid command\n"), 0);
             }
         }
     }

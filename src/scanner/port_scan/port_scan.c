@@ -136,9 +136,3 @@ void port_scan_1000(const char *host)
     // Close the file
     fclose(file);
 }
-
-int main(void)
-{
-    port_scan_1000("scanme.nmap.org");
-    return 0;
-}
