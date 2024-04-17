@@ -20,7 +20,7 @@ src/scanner/ip_scan/ping.o: src/scanner/ip_scan/ping.c src/scanner/ip_scan/ping.
 src/manager/client.o: src/manager/client.c
 src/manager/client: src/manager/client.o
 
-src/agent/agent: src/agent/agent.o src/scanner/ip_scan/ip_scan.o src/scanner/ip_scan/ping.o libs/log/log.o
+src/agent/agent: src/agent/agent.o src/scanner/ip_scan/ip_scan.o src/scanner/ip_scan/ping.o src/scanner/port_scan/port_scan.o libs/log/log.o
 src/agent/agent: src/agent/agent.o
 
 
