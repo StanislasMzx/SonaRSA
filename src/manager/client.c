@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
     printf("\t options :\n");
     printf("\t\t - \e[1m-a\e[m : auto scan\n");
     printf("\t\t - \e[1m-l ip1 ip2 ... ipn\e[m : scan a list of address\n");
+    printf("\t\t - \e[1m-p ip\e[m : scan 1000 most used ports\n");
     printf("\t\t - \e[1m-p ip start_port end_port\e[m : scan a range of ports for an ip\n");
     printf("\t\t - \e[1m-p ip port\e[m : check if a port is open for an ip\n");
     printf("  - \e[1mexit\e[m: Exit the program\n\n");

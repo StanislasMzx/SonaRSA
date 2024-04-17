@@ -92,6 +92,7 @@ int main(void)
                 dup2(out_pipe[1], STDOUT_FILENO);
                 close(out_pipe[1]);
                 ping_sweep_subnet();
+                printf("Scan completed\n");
                 fflush(stdout);
                 read(out_pipe[0], resultBuffer, sizeof(resultBuffer));
                 dup2(saved_stdout, STDOUT_FILENO);
@@ -122,6 +123,7 @@ int main(void)
                 close(out_pipe[1]);
 
                 ping_sweep(ipAddresses, numAddresses);
+                printf("Scan completed\n");
 
                 fflush(stdout);
                 read(out_pipe[0], resultBuffer, sizeof(resultBuffer));
@@ -138,7 +140,22 @@ int main(void)
                 char *host = token;
 
                 token = strtok(NULL, " ");
-                int startPort = atoi(token);
+                int startPort = (token != NULL) ? atoi(token) : -1;
+                if (startPort == -1)
+                {
+                    dup2(out_pipe[1], STDOUT_FILENO);
+                    close(out_pipe[1]);
+                    port_scan_1000(host);
+                    printf("Scan completed\n");
+                    fflush(stdout);
+                    read(out_pipe[0], resultBuffer, sizeof(resultBuffer));
+                    dup2(saved_stdout, STDOUT_FILENO);
+                    close(out_pipe[0]);
+                    resultBuffer[strlen(resultBuffer)] = '\0'; // Add null terminator
+                    printf("%s", resultBuffer);
+                    send(dialogSocket, resultBuffer, strlen(resultBuffer), 0);
+                    continue;
+                }
                 token = strtok(NULL, " ");
                 int endPort = (token != NULL) ? atoi(token) : startPort + 1;
 
