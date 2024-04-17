@@ -81,3 +81,64 @@ void port_scan(const char *host, int start_port, int end_port)
 
     freeaddrinfo(res);
 }
+
+void port_scan_1000(const char *host)
+{
+    FILE *file = fopen("src/scanner/port_scan/top-1000-most-popular-tcp-ports-nmap-sorted.csv", "r");
+    if (file == NULL)
+    {
+        perror("fopen");
+        return;
+    }
+
+    char line[8192];
+    char *token;
+    const char *delimiter = ",";
+
+    pid_t child_pids[1000];
+
+    while (fgets(line, sizeof(line), file))
+    {
+        line[strcspn(line, "\n")] = '\0';
+
+        token = strtok(line, delimiter);
+        while (token != NULL)
+        {
+            int port = atoi(token);
+
+            pid_t pid = fork();
+
+            if (pid == -1)
+            {
+                perror("fork");
+                return;
+            }
+            else if (pid == 0)
+            {
+                port_scan(host, port, port);
+                exit(0);
+            }
+            else
+            {
+                // Parent process
+                waitpid(pid, NULL, 0);
+            }
+
+            token = strtok(NULL, delimiter);
+        }
+    }
+
+    for (int i = 0; i < 1000; i++)
+    {
+        waitpid(child_pids[i], NULL, 0);
+    }
+
+    // Close the file
+    fclose(file);
+}
+
+int main(void)
+{
+    port_scan_1000("scanme.nmap.org");
+    return 0;
+}

@@ -10,4 +10,11 @@
  */
 void port_scan(const char *host, int start_port, int end_port);
 
+/**
+ * @brief Scan the 1000 most common ports on a host
+ *
+ * @param host The host to scan
+ */
+void port_scan_1000(const char *host);
+
 #endif /* PORT_SCAN_H */
